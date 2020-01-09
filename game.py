@@ -17,9 +17,10 @@ goal_img = pygame.transform.scale(pygame.image.load(os.path.join("imgs","Goal_sp
 parked_img = pygame.transform.scale(pygame.image.load(os.path.join("imgs","pickup_red.png")).convert_alpha(), (100,50))
 bg_img = pygame.transform.scale(pygame.image.load(os.path.join("imgs","Solid_black.png")).convert_alpha(), (1200, 1200))
 
+
 class Car:
 
-    def __init__(self,x,y,angle = 0):
+    def __init__(self, x, y, angle=0):
 
         self.x = x
         self.y = y
@@ -76,7 +77,7 @@ class Car:
 
 class Obstacle:
 
-    def __init__(self,x,y,angle = 0):
+    def __init__(self, x, y, angle = 0):
 
         self.x = x
         self.y = y
@@ -152,18 +153,19 @@ def draw_window(window, car, obstacles, goal):
     offset_list = []
     for value in olist:
         offset_list.append((int(value[0] + car.x),int(value[1] + car.y)))
-    pygame.draw.lines(window,(0,0,255),1,offset_list)
+    pygame.draw.lines(window, (0, 0, 255), 1, offset_list)
 
     for obstacle in obstacles:
         olist = obstacle.get_mask().outline()
         offset_list = []
         for value in olist:
-            offset_list.append((int(value[0] + obstacle.x),int(value[1] + obstacle.y)))
+            offset_list.append((int(value[0] + obstacle.x), int(value[1] + obstacle.y)))
         obstacle.draw(window)
-        pygame.draw.lines(window,(0,255,0),1,offset_list)
+        pygame.draw.lines(window, (0, 255, 0), 1, offset_list)
     # -- End of outline drawing
 
     pygame.display.update()
+
 
 def play_game():
     """
@@ -175,16 +177,16 @@ def play_game():
     window = WIN
     clock = pygame.time.Clock()
 
-    car = Car(200,400,0)
+    car = Car(200, 400, 0)
     car.accelerate()
     car.accelerate()
 
     goal = Goal(400, 400)
 
     obstacles = []
-    for i in range(1,2):
+    for i in range(1, 2):
 
-        obstacles.append(Obstacle(300*i,200*i,90))
+        obstacles.append(Obstacle(300*i, 200*i, 90))
 
     run = True
     while run:
@@ -222,6 +224,9 @@ def run():
 
     while True:
         play_game()
+
+
+def train_model()
 
 if __name__ == '__main__':
     run()
