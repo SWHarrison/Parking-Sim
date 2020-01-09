@@ -176,21 +176,24 @@ def play_game():
     window = WIN
     clock = pygame.time.Clock()
 
-    car = Car(200,400,0)
-    car.accelerate()
-    car.accelerate()
+    car = Car(0,110,90)
 
-    goal = Goal(400, 400)
+    goal = Goal(900, 370)
 
     obstacles = []
     for i in range(1,2):
 
-        obstacles.append(Obstacle(300*i,200*i,90))
+        obstacles.append(Obstacle(0*i,0*i,45))
+
+    #obstacle_rect = obstacles[0].image.get_rect()
+    #print("check",obstacle_rect.collidepoint(50,25))
 
     run = True
     while run:
 
         clock.tick(30)
+
+        car.turn_left()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -198,8 +201,6 @@ def play_game():
                 pygame.quit()
                 quit()
                 break
-
-        #car.turn_left()
 
         car.move()
 
@@ -218,26 +219,47 @@ def play_game():
 
         draw_window(window,car,obstacles, goal)
 
-        angle_adjustments = [0,20,-20,90,-90,180,160,200]
+        angle_adjustments = [0,20,-20,90,-90,180,160,200,60,-60,120, 240]
         start_pos = (car.x + car.image.get_width()/2, car.y + car.image.get_height()/2)
         line_length = 150
         car_lines = []
-        for i in range(8):
+        state_vectors = []
+        for i in range(len(angle_adjustments)):
             angle = car.angle + angle_adjustments[i]
-            print("angle:",angle)
+            #print("angle:",angle)
             radians = angle / 180 * math.pi
             x_angle = math.cos(radians)
             y_angle = math.sin(radians)
-            print("x",x_angle)
-            print("y",y_angle)
-            end_pos = (car.x + x_angle * line_length + car.image.get_width()/2, car.y + y_angle * line_length + car.image.get_height()/2)
-            line = pygame.draw.line(window, (255,255,255), start_pos, end_pos, 2)
-            print(line)
-            car_lines.append(line)
+            #print("x",x_angle)
+            #print("y",y_angle)
+            no_collision = True
+            for j in range(0,line_length,2):
+                point = (car.x - x_angle * j + car.image.get_width()/2,car.y + y_angle * j + car.image.get_height()/2)
+                for obstacle in obstacles:
+                    obstacle_rect = obstacle.image.get_rect()
+                    print("rect",obstacle_rect)
+                    print("point", point)
+                    if obstacle_rect.collidepoint(point):
+                        print("point", point, "in rect", obstacle_rect)
+                        no_collision = False
+                        break
+                if not no_collision:
+                    break
 
-        #state_vectors = []
-        #for line in car_lines:
-            #pass
+            end_pos = (car.x - x_angle * line_length + car.image.get_width()/2, car.y + y_angle * line_length + car.image.get_height()/2)
+            color = (0,255,255) if no_collision else (255,0,0)
+            line = pygame.draw.line(window, color, start_pos, end_pos, 2)
+            #pygame.draw.lines(window,(0,255,0),1,line)
+            '''no_collision = True
+            for obstacle in obstacles:
+                obstacle_rect = obstacle.image.get_rect(center = (obstacle.x + obstacle.image.get_width()/2,obstacle.y + obstacle.image.get_height()/2))
+                print(obstacle_rect.colliderect(line))
+                if obstacle_rect.colliderect(line):
+                    pygame.draw.line(window, (255,0,0), start_pos, end_pos, 4)
+                    no_collision = False
+                    break'''
+
+            state_vectors.append(no_collision)
 
         pygame.display.update()
 
