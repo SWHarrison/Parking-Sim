@@ -117,14 +117,15 @@ class Goal:
 
         return pygame.mask.from_surface(self.image)
 
-    def collide(self, car, win):
+    def collide(self, car):
 
-        car_mask = car.get_mask()
-        goal_mask = self.get_mask()
+        #offset = (int(self.x - car.x), int(self.y - car.y))
 
-        offset = (int(self.x - car.x), int(self.y - car.y))
+        #return car_mask.overlap_area(goal_mask,offset)
+        car_rect = car.image.get_rect(center = (car.x,car.y))
+        goal_rect = self.image.get_rect(center = (self.x + 15,self.y))
 
-        return car_mask.overlap_area(car_mask,offset)
+        return goal_rect.contains(car_rect)
 
 
 def blitRotateCenter(surf, image, topleft, angle):
@@ -140,11 +141,13 @@ def blitRotateCenter(surf, image, topleft, angle):
 
     surf.blit(image, new_rect.topleft)
 
-def draw_window(window, car, obstacles):
+def draw_window(window, car, obstacles, goal):
 
     window.blit(bg_img, (0,0))
     car.draw(window)
+    goal.draw(window)
 
+    # all line below draw outlines of cars
     olist = car.get_mask().outline()
     offset_list = []
     for value in olist:
@@ -158,6 +161,7 @@ def draw_window(window, car, obstacles):
             offset_list.append((int(value[0] + obstacle.x),int(value[1] + obstacle.y)))
         obstacle.draw(window)
         pygame.draw.lines(window,(0,255,0),1,offset_list)
+    # -- End of outline drawing
 
     pygame.display.update()
 
@@ -169,15 +173,16 @@ def play_game():
     """
     global WIN
     window = WIN
-
-    car = Car(400,400)
-    car.accelerate()
-    car.accelerate()
-    #car.accelerate()
     clock = pygame.time.Clock()
 
+    car = Car(200,400,0)
+    car.accelerate()
+    car.accelerate()
+
+    goal = Goal(400, 400)
+
     obstacles = []
-    for i in range(1,4):
+    for i in range(1,2):
 
         obstacles.append(Obstacle(300*i,200*i,90))
 
@@ -193,7 +198,7 @@ def play_game():
                 quit()
                 break
 
-        car.turn_left()
+        #car.turn_left()
 
         car.move()
 
@@ -204,7 +209,13 @@ def play_game():
                 print("car crash")
                 return 0
 
-        draw_window(window,car,obstacles)
+        collision = goal.collide(car)
+        if(collision):
+            print(collision)
+            print("car parked")
+            return 1
+
+        draw_window(window,car,obstacles, goal)
 
 
 def run():
