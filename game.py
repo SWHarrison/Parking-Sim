@@ -74,6 +74,7 @@ class Car:
 
         return pygame.mask.from_surface(self.image)
 
+
 class Obstacle:
 
     def __init__(self,x,y,angle = 0):
@@ -99,6 +100,7 @@ class Obstacle:
         offset = (int(self.x - car.x), int(self.y - car.y))
 
         return car_mask.overlap(obstacle_mask,offset)
+
 
 class Goal:
 
@@ -163,7 +165,6 @@ def draw_window(window, car, obstacles, goal):
         pygame.draw.lines(window,(0,255,0),1,offset_list)
     # -- End of outline drawing
 
-    pygame.display.update()
 
 def play_game():
     """
@@ -216,6 +217,29 @@ def play_game():
             return 1
 
         draw_window(window,car,obstacles, goal)
+
+        angle_adjustments = [0,20,-20,90,-90,180,160,200]
+        start_pos = (car.x + car.image.get_width()/2, car.y + car.image.get_height()/2)
+        line_length = 150
+        car_lines = []
+        for i in range(8):
+            angle = car.angle + angle_adjustments[i]
+            print("angle:",angle)
+            radians = angle / 180 * math.pi
+            x_angle = math.cos(radians)
+            y_angle = math.sin(radians)
+            print("x",x_angle)
+            print("y",y_angle)
+            end_pos = (car.x + x_angle * line_length + car.image.get_width()/2, car.y + y_angle * line_length + car.image.get_height()/2)
+            line = pygame.draw.line(window, (255,255,255), start_pos, end_pos, 2)
+            print(line)
+            car_lines.append(line)
+
+        #state_vectors = []
+        #for line in car_lines:
+            #pass
+
+        pygame.display.update()
 
 
 def run():
