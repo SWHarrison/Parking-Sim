@@ -3,6 +3,15 @@ import random
 import os
 import time
 import math
+from train_model import GameAgent
+# model imports
+from keras.optimizers import Adam
+from keras.models import Sequential
+from keras.layers.core import Dense, Dropout
+from random import sample
+import numpy as np
+import pandas as pd
+from operator import add
 
 pygame.font.init()  # init font
 
@@ -100,12 +109,12 @@ class Obstacle:
 
         offset = (int(self.x - car.x), int(self.y - car.y))
 
-        return car_mask.overlap(obstacle_mask,offset)
+        return car_mask.overlap(obstacle_mask, offset)
 
 
 class Goal:
 
-    def __init__(self,x,y,angle = 0):
+    def __init__(self, x, y, angle=0):
 
         self.x = x
         self.y = y
@@ -125,8 +134,8 @@ class Goal:
         #offset = (int(self.x - car.x), int(self.y - car.y))
 
         #return car_mask.overlap_area(goal_mask,offset)
-        car_rect = car.image.get_rect(center = (car.x,car.y))
-        goal_rect = self.image.get_rect(center = (self.x + 15,self.y))
+        car_rect = car.image.get_rect(center=(car.x, car.y))
+        goal_rect = self.image.get_rect(center=(self.x + 15, self.y))
 
         return goal_rect.contains(car_rect)
 
@@ -140,9 +149,10 @@ def blitRotateCenter(surf, image, topleft, angle):
     :param angle: a float value for angle
     :return: None
     """
-    new_rect = image.get_rect(center = image.get_rect(topleft = topleft).center)
+    new_rect = image.get_rect(center=image.get_rect(topleft=topleft).center)
 
     surf.blit(image, new_rect.topleft)
+
 
 def draw_window(window, car, obstacles, goal):
 
@@ -167,45 +177,44 @@ def draw_window(window, car, obstacles, goal):
     # -- End of outline drawing
 
 
-
-def play_game():
+def play_game(model=None, gamma=0.9, epsilon=None):
     """
+
     runs the simulation of the current population of
     birds and sets their fitness based on the distance they
     reach in the game.
+    Args:
+        epsilon: used to explore the random action when we are not using 
+        the model
+        gamma: 
     """
     global WIN
     window = WIN
     clock = pygame.time.Clock()
 
-<<<<<<< HEAD
-    car = Car(200, 400, 0)
-    car.accelerate()
-    car.accelerate()
-=======
-    car = Car(0,110,90)
->>>>>>> e478c51f22aef637ba4605d51242af6c83d59f39
+    # 
+    reward = 0
+    learning_rate = 0.0001
+    
+    car = Car(200, 510, 0)
 
-    goal = Goal(900, 370)
+    goal = Goal(700, 370)
 
     obstacles = []
-    for i in range(1, 2):
+    for i in range(1, 3):
 
-<<<<<<< HEAD
-        obstacles.append(Obstacle(300*i, 200*i, 90))
-=======
-        obstacles.append(Obstacle(0*i,0*i,45))
+        obstacles.append(Obstacle(700,70 + i * 200,0))
 
     #obstacle_rect = obstacles[0].image.get_rect()
     #print("check",obstacle_rect.collidepoint(50,25))
->>>>>>> e478c51f22aef637ba4605d51242af6c83d59f39
 
     run = True
     while run:
 
         clock.tick(30)
-
-        car.turn_left()
+        car.accelerate()
+        # car.accelerate()
+        # car.turn_left()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -244,8 +253,8 @@ def play_game():
             y_angle = math.sin(radians)
             #print("x",x_angle)
             #print("y",y_angle)
-            no_collision = True
-            for j in range(0,line_length,2):
+            collision = False
+            for j in range(0, line_length, 5):
                 point = (car.x - x_angle * j + car.image.get_width()/2,car.y + y_angle * j + car.image.get_height()/2)
                 for obstacle in obstacles:
                     obstacle_rect = obstacle.image.get_rect()
@@ -253,36 +262,57 @@ def play_game():
                     print("point", point)
                     if obstacle_rect.collidepoint(point):
                         print("point", point, "in rect", obstacle_rect)
-                        no_collision = False
+                        collision = True
                         break
-                if not no_collision:
+                        
+                if collision:
                     break
 
             end_pos = (car.x - x_angle * line_length + car.image.get_width()/2, car.y + y_angle * line_length + car.image.get_height()/2)
-            color = (0,255,255) if no_collision else (255,0,0)
+            color = (0, 255, 255) if not collision else (255, 0, 0)
             line = pygame.draw.line(window, color, start_pos, end_pos, 2)
             #pygame.draw.lines(window,(0,255,0),1,line)
-            '''no_collision = True
+            '''collision = True
             for obstacle in obstacles:
                 obstacle_rect = obstacle.image.get_rect(center = (obstacle.x + obstacle.image.get_width()/2,obstacle.y + obstacle.image.get_height()/2))
                 print(obstacle_rect.colliderect(line))
                 if obstacle_rect.colliderect(line):
                     pygame.draw.line(window, (255,0,0), start_pos, end_pos, 4)
-                    no_collision = False
+                    collision = False
                     break'''
 
-            state_vectors.append(no_collision)
-
+            state_vectors.append(collision)
+        game_agent = GameAgent()
+        # train the model
+        model = game_agent.create_model()
+        # model.fit()
         pygame.display.update()
 
 
 def run():
 
+    # feed the model with state vectors and car and onbstacles location
+    
+
     while True:
         play_game()
 
 
-def train_model()
+def train_model(learning_rate):
+    model = Sequential()
+    model.add(Dense(120, activation="relu", input_shape=(11,)))
+    model.add(Dropout(0.15))
+    model.add(Dense(120, activation="relu"))
+    model.add(Dropout(0.15))
+    model.add(Dense(120, activation="relu"))
+    model.add(Dropout(0.15))
+    model.add(Dense(3, activation="softmax"))
+    optimizer = Adam(learning_rate)
+    model.compile(loss="mse", optimizer=optimizer)
+    # if training_weights:
+    #     model.load_weights(training_weights)
+    
+    return model
 
 if __name__ == '__main__':
     run()
