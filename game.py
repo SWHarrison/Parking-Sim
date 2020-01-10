@@ -192,21 +192,12 @@ def play_game(model=None, gamma=0.9, epsilon=None):
     window = WIN
     clock = pygame.time.Clock()
 
-<<<<<<< HEAD
     # 
     reward = 0
     learning_rate = 0.0001
     
     car = Car(200, 510, 0)
-=======
-<<<<<<< HEAD
-    car = Car(200, 400, 0)
-    car.accelerate()
-    car.accelerate()
-=======
-    car = Car(0,110,90)
->>>>>>> 5731851b99dcc78e83f15e7cf87bfbfd50230351
->>>>>>> 0e94050ef2b060fb2e24657f3930f7604dc986b3
+
 
     goal = Goal(700, 370)
 
@@ -222,14 +213,12 @@ def play_game(model=None, gamma=0.9, epsilon=None):
     while run:
 
         clock.tick(30)
-<<<<<<< HEAD
+
         car.accelerate()
         # car.accelerate()
         # car.turn_left()
-=======
 
         #car.turn_left()
->>>>>>> 0e94050ef2b060fb2e24657f3930f7604dc986b3
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -300,7 +289,7 @@ def play_game(model=None, gamma=0.9, epsilon=None):
         game_agent = GameAgent()
         # train the model
         model = game_agent.create_model()
-        # model.fit()
+        model.predict()
         pygame.display.update()
 
 
