@@ -48,10 +48,14 @@ class Car:
     def accelerate(self):
 
         self.speed += 1
+        if self.speed > 10:
+            self.speed = 10
 
     def reverse(self):
 
         self.speed -=1
+        if self.speed < -10:
+            self.speed = -10
 
     def brake(self):
 
@@ -83,6 +87,25 @@ class Car:
     def get_mask(self):
 
         return pygame.mask.from_surface(self.image)
+
+    def next_action(self, arr):
+
+        print(arr)
+        if arr[0] == 1:
+            print("car accelerate")
+            self.accelerate()
+        elif arr[1] == 1:
+            print("car turn left")
+            self.turn_left()
+        elif arr[2] == 1:
+            print("car turn right")
+            self.turn_right()
+        elif arr[3] == 1:
+            print("car reverse")
+            self.reverse()
+        elif arr[4] == 1:
+            print("car brake")
+            self.brake()
 
 
 class Obstacle:
@@ -177,48 +200,38 @@ def draw_window(window, car, obstacles, goal):
     # -- End of outline drawing
 
 
-def play_game(model=None, gamma=0.9, epsilon=None):
+def play_game(game_agent):
     """
 
     runs the simulation of the current population of
     birds and sets their fitness based on the distance they
     reach in the game.
     Args:
-        epsilon: used to explore the random action when we are not using 
+        epsilon: used to explore the random action when we are not using
         the model
-        gamma: 
+        gamma:
     """
     global WIN
     window = WIN
     clock = pygame.time.Clock()
-
-    # 
     reward = 0
-    learning_rate = 0.0001
-    
-    car = Car(200, 510, 0)
+    #game_agent = GameAgent(gamma, epsilon)
 
 
+    car = Car(200, 510, 90)
     goal = Goal(700, 370)
-
     obstacles = []
+    obstacles.append(Obstacle(800,550,90))
     for i in range(1, 3):
 
-        obstacles.append(Obstacle(700,70 + i * 200,0))
+        obstacles.append(Obstacle(700,100 + i * 180,0))
 
-    #obstacle_rect = obstacles[0].image.get_rect()
-    #print("check",obstacle_rect.collidepoint(50,25))
-
+    old_state = np.array(game_agent.get_game_states(car, goal, [False] * 12))
+    next_action = [1,0,0,0,0]
     run = True
     while run:
 
         clock.tick(30)
-
-        car.accelerate()
-        # car.accelerate()
-        # car.turn_left()
-
-        #car.turn_left()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -227,96 +240,95 @@ def play_game(model=None, gamma=0.9, epsilon=None):
                 quit()
                 break
 
-        car.move()
 
+        car.next_action(next_action)
+        car.move()
+        print("car x",car.x)
+        print("car y", car.y)
+        #print("car speed", car.speed)
+
+        car_crash = False
+        car_parked = False
+
+        # check if car is out of bounds
+        if car.x < 0 or car.x > 1200 or car.y < 0 or car.y > 1200:
+            car_crash = True
+
+        # check for car crash
         for obstacle in obstacles:
             collision = obstacle.collide(car)
             if(collision):
                 print(collision)
                 print("car crash")
-                return 0
+                car_crash = True
 
+        # check for parking
         collision = goal.collide(car)
         if(collision):
             print(collision)
             print("car parked")
-            return 1
+            car_parked = True
 
         draw_window(window,car,obstacles, goal)
 
-        angle_adjustments = [0,20,-20,90,-90,180,160,200,60,-60,120, 240]
+        # draw sensor lines
+        angle_adjustments = [0,20,-20,90,-90,180,160,200,60,-60,120,240]
         start_pos = (car.x + car.image.get_width()/2, car.y + car.image.get_height()/2)
         line_length = 150
         car_lines = []
         state_vectors = []
         for i in range(len(angle_adjustments)):
             angle = car.angle + angle_adjustments[i]
-            #print("angle:",angle)
             radians = angle / 180 * math.pi
             x_angle = math.cos(radians)
             y_angle = math.sin(radians)
-            #print("x",x_angle)
-            #print("y",y_angle)
             collision = False
             for j in range(0, line_length, 5):
                 point = (car.x - x_angle * j + car.image.get_width()/2,car.y + y_angle * j + car.image.get_height()/2)
                 for obstacle in obstacles:
                     obstacle_rect = obstacle.image.get_rect(center = (obstacle.x + obstacle.image.get_width()/2, obstacle.y + obstacle.image.get_height()/2))
-                    #print("rect",obstacle_rect)
-                    #print("point", point)
                     if obstacle_rect.collidepoint(point):
                         print("point", point, "in rect", obstacle_rect)
                         collision = True
                         break
-                        
+
                 if collision:
                     break
 
             end_pos = (car.x - x_angle * line_length + car.image.get_width()/2, car.y + y_angle * line_length + car.image.get_height()/2)
             color = (0, 255, 255) if not collision else (255, 0, 0)
             line = pygame.draw.line(window, color, start_pos, end_pos, 2)
-            #pygame.draw.lines(window,(0,255,0),1,line)
-            '''collision = True
-            for obstacle in obstacles:
-                obstacle_rect = obstacle.image.get_rect(center = (obstacle.x + obstacle.image.get_width()/2,obstacle.y + obstacle.image.get_height()/2))
-                print(obstacle_rect.colliderect(line))
-                if obstacle_rect.colliderect(line):
-                    pygame.draw.line(window, (255,0,0), start_pos, end_pos, 4)
-                    collision = False
-                    break'''
-
             state_vectors.append(collision)
-        game_agent = GameAgent()
-        # train the model
-        model = game_agent.create_model()
-        model.predict()
+
         pygame.display.update()
 
+        # get game state
+        game_state = np.array(game_agent.get_game_states(car, goal, state_vectors))
+        # update model
+        next_action = game_agent.predict(game_state)
+        # train model
+        reward = game_agent.get_game_reward(car_crash, car_parked, old_state, game_state)
+        game_agent.short_term_memory_trainer(old_state, next_action, reward, game_state, (car_crash or car_parked))
+        game_agent.save_state_to_memory(old_state, next_action, reward, game_state, (car_crash or car_parked))
 
-def run():
+        # set old_state to current new_state
+        old_state = game_state
+        run = not (car_crash or car_parked)
+        print("keep running",run)
 
-    # feed the model with state vectors and car and onbstacles location
-    
+    game_agent.train_from_replayed_memory()
+    game_agent.model.save("model.h5")
 
+
+
+def run(gamma=0.9, epsilon=0.2):
+
+    game_agent = GameAgent(gamma, epsilon)
+    iter = 0
     while True:
-        play_game()
-
-
-def train_model(learning_rate):
-    model = Sequential()
-    model.add(Dense(120, activation="relu", input_shape=(11,)))
-    model.add(Dropout(0.15))
-    model.add(Dense(120, activation="relu"))
-    model.add(Dropout(0.15))
-    model.add(Dense(120, activation="relu"))
-    model.add(Dropout(0.15))
-    model.add(Dense(3, activation="softmax"))
-    optimizer = Adam(learning_rate)
-    model.compile(loss="mse", optimizer=optimizer)
-    # if training_weights:
-    #     model.load_weights(training_weights)
-    
-    return model
+        print("iter", iter)
+        play_game(game_agent)
+        iter += 1
 
 if __name__ == '__main__':
     run()
