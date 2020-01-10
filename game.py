@@ -218,7 +218,7 @@ def play_game(game_agent):
     #game_agent = GameAgent(gamma, epsilon)
 
 
-    car = Car(200, 510, 90)
+    car = Car(200, 510, 30)
     goal = Goal(700, 370)
     obstacles = []
     obstacles.append(Obstacle(800,550,90))
