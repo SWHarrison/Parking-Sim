@@ -176,14 +176,15 @@ def play_game():
     window = WIN
     clock = pygame.time.Clock()
 
-    car = Car(0,110,90)
+    car = Car(100,100,0)
+    car.accelerate()
 
     goal = Goal(900, 370)
 
     obstacles = []
     for i in range(1,2):
 
-        obstacles.append(Obstacle(0*i,0*i,45))
+        obstacles.append(Obstacle(400*i,0*i,0))
 
     #obstacle_rect = obstacles[0].image.get_rect()
     #print("check",obstacle_rect.collidepoint(50,25))
@@ -193,7 +194,7 @@ def play_game():
 
         clock.tick(30)
 
-        car.turn_left()
+        #car.turn_left()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -236,9 +237,9 @@ def play_game():
             for j in range(0,line_length,2):
                 point = (car.x - x_angle * j + car.image.get_width()/2,car.y + y_angle * j + car.image.get_height()/2)
                 for obstacle in obstacles:
-                    obstacle_rect = obstacle.image.get_rect()
-                    print("rect",obstacle_rect)
-                    print("point", point)
+                    obstacle_rect = obstacle.image.get_rect(center = (obstacle.x + obstacle.image.get_width()/2, obstacle.y + obstacle.image.get_height()/2))
+                    #print("rect",obstacle_rect)
+                    #print("point", point)
                     if obstacle_rect.collidepoint(point):
                         print("point", point, "in rect", obstacle_rect)
                         no_collision = False
