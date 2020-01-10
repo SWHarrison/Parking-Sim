@@ -192,11 +192,21 @@ def play_game(model=None, gamma=0.9, epsilon=None):
     window = WIN
     clock = pygame.time.Clock()
 
+<<<<<<< HEAD
     # 
     reward = 0
     learning_rate = 0.0001
     
     car = Car(200, 510, 0)
+=======
+<<<<<<< HEAD
+    car = Car(200, 400, 0)
+    car.accelerate()
+    car.accelerate()
+=======
+    car = Car(0,110,90)
+>>>>>>> 5731851b99dcc78e83f15e7cf87bfbfd50230351
+>>>>>>> 0e94050ef2b060fb2e24657f3930f7604dc986b3
 
     goal = Goal(700, 370)
 
@@ -212,9 +222,14 @@ def play_game(model=None, gamma=0.9, epsilon=None):
     while run:
 
         clock.tick(30)
+<<<<<<< HEAD
         car.accelerate()
         # car.accelerate()
         # car.turn_left()
+=======
+
+        #car.turn_left()
+>>>>>>> 0e94050ef2b060fb2e24657f3930f7604dc986b3
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -257,9 +272,9 @@ def play_game(model=None, gamma=0.9, epsilon=None):
             for j in range(0, line_length, 5):
                 point = (car.x - x_angle * j + car.image.get_width()/2,car.y + y_angle * j + car.image.get_height()/2)
                 for obstacle in obstacles:
-                    obstacle_rect = obstacle.image.get_rect()
-                    print("rect",obstacle_rect)
-                    print("point", point)
+                    obstacle_rect = obstacle.image.get_rect(center = (obstacle.x + obstacle.image.get_width()/2, obstacle.y + obstacle.image.get_height()/2))
+                    #print("rect",obstacle_rect)
+                    #print("point", point)
                     if obstacle_rect.collidepoint(point):
                         print("point", point, "in rect", obstacle_rect)
                         collision = True
