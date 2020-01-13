@@ -90,8 +90,8 @@ class GameAgent():
         # reward if closer to goal than before
         if(old_distance > new_distance):
             self.reward += 1
-        else:
-            self.reward -= 1
+        # else:
+        #     self.reward -= 1
 
         # penalty if crashing
         if collision:
