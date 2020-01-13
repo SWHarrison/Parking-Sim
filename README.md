@@ -1,24 +1,18 @@
 # Parking Simulation
 
-Parking simulation trained using deep learning and pygame
+Self-Parking car simulation using Reinforcement Learning.
 
-## Getting Started
+## Description
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+Self-driving car tries to park using reinforcement learning - it is a giving reward when car gets closer to goal it is rewarded and far from the goal it loses the reward. That's how it learns to get closer to the goal and finally park itself. We used pygame to set up the game logic and environment. We used `Sequentional()` model to train. 
 
-### Prerequisites
-
-What things you need to install the software and how to install them
-
-```
-Give examples
-```
 
 ### Installing
 
-A step by step series of examples that tell you how to get a development env running
-
-Say what the step will be
+- Clone the repo 
+```
+git clone 
+```
 
 ```
 Give the example
