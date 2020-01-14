@@ -160,4 +160,7 @@ dmypy.json
 # Ignore all local history of files
 .history
 
+# Custom
+*.h5
+
 # End of https://www.gitignore.io/api/macos,python,jupyternotebooks,visualstudiocode
