@@ -200,7 +200,7 @@ def draw_window(window, car, obstacles, goal):
     # -- End of outline drawing
 
 
-def play_game(game_agent):
+def play_game(game_agent, iter):
     """
 
     runs the simulation of the current population of
@@ -305,7 +305,7 @@ def play_game(game_agent):
         # get game state
         game_state = np.array(game_agent.get_game_states(car, goal, state_vectors))
         # update model
-        next_action = game_agent.predict(game_state)
+        next_action = game_agent.predict(game_state, iter)
         # train model
         reward = game_agent.get_game_reward(car_crash, car_parked, old_state, game_state)
         game_agent.short_term_memory_trainer(old_state, next_action, reward, game_state, (car_crash or car_parked))
@@ -317,7 +317,7 @@ def play_game(game_agent):
         print("keep running",run)
 
     game_agent.train_from_replayed_memory()
-    game_agent.model.save("model.h5")
+    game_agent.model.save("model_2.h5")
 
 
 
@@ -327,7 +327,7 @@ def run(gamma=0.9, epsilon=0.2):
     iter = 0
     while True:
         print("iter", iter)
-        play_game(game_agent)
+        play_game(game_agent, iter)
         iter += 1
 
 if __name__ == '__main__':

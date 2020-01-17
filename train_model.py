@@ -33,19 +33,23 @@ class GameAgent():
         STATE_VECTOR = sensors
         STATE_VECTOR.append(car.x)
         STATE_VECTOR.append(car.y)
+        STATE_VECTOR.append(car.angle)
+        STATE_VECTOR.append(car.speed)
         STATE_VECTOR.append(goal.x)
         STATE_VECTOR.append(goal.y)
 
         return STATE_VECTOR
 
-    def predict(self, game_state):
+    def predict(self, game_state, iter):
 
         rand_num = random.random()
         next_action = [0] * 5
-        if rand_num < self.epsilon:
+        if(iter < 50):
+            next_action[0] = 1
+        elif rand_num < self.epsilon:
             next_action[random.randint(0,4)] = 1
         else:
-            model_input = np.array([game_state.reshape(16,)])
+            model_input = np.array([game_state.reshape(18,)])
             #print(model_input)
             #print("input shape:", model_input.shape)
             next_action = self.model.predict(model_input)[0]
@@ -58,7 +62,7 @@ class GameAgent():
         """ Method to create neural network architecture using optimized Keras models. """
         # input shape
         model = Sequential()
-        model.add(Dense(120, activation="relu", input_shape=(16,)))
+        model.add(Dense(120, activation="relu", input_shape=(18,)))
         model.add(Dropout(0.15))
         model.add(Dense(120, activation="relu"))
         model.add(Dropout(0.15))
@@ -90,6 +94,12 @@ class GameAgent():
         # reward if closer to goal than before
         if(old_distance > new_distance):
             self.reward += 1
+            if new_distance < 200:
+                self.reward * 20
+            elif new_distance < 400:
+                self.reward * 8
+            elif new_distance < 800:
+                self.reward * 2
         # else:
         #     self.reward -= 1
 
@@ -110,10 +120,10 @@ class GameAgent():
         """ Method to train short-term memory bank using detailed saved state info. """
         target_ = current_reward
         if not stop:
-            target_ = current_reward + (self.gamma * np.amax(self.model.predict(next_state.reshape((1, 16)))[0]))
-        target_final = self.model.predict(current_state.reshape((1, 16)))
+            target_ = current_reward + (self.gamma * np.amax(self.model.predict(next_state.reshape((1, 18)))[0]))
+        target_final = self.model.predict(current_state.reshape((1, 18)))
         target_final[0][np.argmax(current_action)] = target_
-        self.model.fit(current_state.reshape((1, 16)),target_final, epochs=1, verbose=0)
+        self.model.fit(current_state.reshape((1, 18)),target_final, epochs=1, verbose=0)
 
     def train_from_replayed_memory(self):
         """ Method to retrieve state details from object's memory bank. """
