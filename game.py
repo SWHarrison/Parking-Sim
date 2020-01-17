@@ -269,6 +269,16 @@ def play_game(game_agent, iter):
             print("car parked")
             car_parked = True
 
+        if car_parked:
+            from datetime import datetime
+            parked_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            with open('sorted_source_text.txt', 'w') as file:
+                file.write(parked_time)
+            
+            return 0
+
+            
+
         draw_window(window,car,obstacles, goal)
 
         # draw sensor lines
