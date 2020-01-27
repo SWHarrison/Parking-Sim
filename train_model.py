@@ -43,11 +43,11 @@ class GameAgent():
     def predict(self, game_state, iter):
 
         rand_num = random.random()
-        next_action = [0] * 5
-        if(iter < 50):
+        next_action = [0] * 6
+        if(iter < 5):
             next_action[0] = 1
         elif rand_num < self.epsilon:
-            next_action[random.randint(0,4)] = 1
+            next_action[random.randint(0,5)] = 1
         else:
             model_input = np.array([game_state.reshape(18,)])
             #print(model_input)
@@ -68,7 +68,7 @@ class GameAgent():
         model.add(Dropout(0.15))
         model.add(Dense(120, activation="relu"))
         model.add(Dropout(0.15))
-        model.add(Dense(5, activation="softmax"))
+        model.add(Dense(6, activation="softmax"))
         optimizer = Adam(self.learning_rate)
         model.compile(loss="mse", optimizer=optimizer)
 
