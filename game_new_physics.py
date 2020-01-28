@@ -327,16 +327,21 @@ def play_game(game_agent, iter):
 
         # check for parking
         collision = goal.collide(car)
+        num_park = 0
         if(collision):
             print(collision)
             print("car parked")
             car_parked = True
+            num_park += 1
 
         if car_parked:
+            print("num_park: ", num_park)
             from datetime import datetime
             parked_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            with open('sorted_source_text.txt', 'w') as file:
-                file.write(parked_time)
+            
+            with open('parked_time.txt', 'w') as file:
+                if parked_time not in "parked_time.txt":
+                    file.write(parked_time)
 
         draw_window(window,car,obstacles, goal)
 
@@ -393,6 +398,7 @@ def play_game(game_agent, iter):
 def run(gamma=0.9, epsilon=0.2):
 
     game_agent = GameAgent(gamma, epsilon)
+
     iter = 0
     while True:
         print("iter", iter)

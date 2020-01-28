@@ -1,5 +1,6 @@
 from keras.optimizers import Adam
 from keras.models import Sequential
+from keras.models import load_model
 from keras.layers.core import Dense, Dropout
 import random
 from random import sample
@@ -24,7 +25,8 @@ class GameAgent():
         self.reward = 0
         self.agent_target = 1
         self.agent_prediction = 0
-        self.model = self.create_model()
+        # self.model = self.create_model()
+        self.model = load_model('model_2.h5')
         self.state = None
 
 
