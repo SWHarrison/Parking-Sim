@@ -105,7 +105,7 @@ class GameAgent():
 
         # penalty if crashing
         if collision:
-            self.reward -= 20
+            self.reward -= 50
         # reward if parking
         elif parked:
             self.reward += 100
