@@ -1,5 +1,6 @@
 from keras.optimizers import Adam
 from keras.models import Sequential
+from keras.models import load_model
 from keras.layers.core import Dense, Dropout
 from keras.models import load_model
 import random
@@ -112,7 +113,7 @@ class GameAgent():
 
         # penalty if crashing
         if collision:
-            self.reward -= 20
+            self.reward -= 50
         # reward if parking
         elif parked:
             self.reward += 100
