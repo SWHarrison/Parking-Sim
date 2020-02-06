@@ -22,7 +22,7 @@ WIN = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
 pygame.display.set_caption("Parking Game")
 
 car_img = pygame.transform.scale(pygame.image.load(os.path.join("imgs","4x4_white.png")).convert_alpha(), (100,50))
-goal_img = pygame.transform.scale(pygame.image.load(os.path.join("imgs","Goal_space.png")).convert_alpha(), (130,65))
+goal_img = pygame.transform.scale(pygame.image.load(os.path.join("imgs","Goal_space.png")).convert_alpha(), (130,100))
 parked_img = pygame.transform.scale(pygame.image.load(os.path.join("imgs","pickup_red.png")).convert_alpha(), (100,50))
 bg_img = pygame.transform.scale(pygame.image.load(os.path.join("imgs","Solid_black.png")).convert_alpha(), (1200, 1200))
 
@@ -68,7 +68,7 @@ class Car:
     def brake(self):
 
         self.speed *= 0.5
-        if self.speed <= 1:
+        if self.speed <= 1 and self.speed >= -1:
             self.speed = 0
 
     def fix_angle(self):
@@ -223,13 +223,18 @@ class Goal:
 
     def collide(self, car):
 
-        #offset = (int(self.x - car.x), int(self.y - car.y))
+        car_center = (car.x + car.image.get_width()/2,car.y + car.image.get_height()/2)
+        goal_center = (self.x + self.image.get_width()/2, self.y + self.image.get_height()/2)
 
-        #return car_mask.overlap_area(goal_mask,offset)
-        car_rect = car.image.get_rect(center=(car.x, car.y))
-        goal_rect = self.image.get_rect(center=(self.x + 15, self.y))
+        print(car_center,goal_center)
 
-        return goal_rect.contains(car_rect)
+        x_distance = abs(car_center[0] - goal_center[0])
+        y_distance = abs(car_center[1] - goal_center[1])
+        distance = math.sqrt((car_center[0] - goal_center[0])**2 + (car_center[1] - goal_center[1])**2)
+        print("distance:", distance)
+        print("x_distnace", x_distance)
+
+        return distance < 30 and x_distance < 20
 
 
 def blitRotateCenter(surf, image, topleft, angle):
@@ -281,15 +286,16 @@ def play_game(game_agent, iter):
     clock = pygame.time.Clock()
     reward = 0
 
-    car = Car(200, 510, 30)
-    goal = Goal(700, 370)
+    car = Car(200, random.randint(200,1000), random.randint(0,90))
+    goal = Goal(700, 350)
     obstacles = []
     obstacles.append(Obstacle(800,550,90))
     for i in range(1, 3):
 
         obstacles.append(Obstacle(700,100 + i * 180,0))
 
-    old_state = np.array(game_agent.get_game_states(car, goal, [False] * 12))
+    old_state = np.array(game_agent.get_game_states(car, goal, [150] * 12))
+    #next_action = [1,0,0,0,0,0]
     next_action = [1,0,0,0,0,0]
     run = True
     while run:
@@ -335,7 +341,7 @@ def play_game(game_agent, iter):
         if car_parked:
             from datetime import datetime
             parked_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            with open('sorted_source_text.txt', 'w') as file:
+            with open('sorted_source_text_iter' + str(iter) + '.txt', 'w') as file:
                 file.write(parked_time)
 
         draw_window(window,car,obstacles, goal)
@@ -369,6 +375,33 @@ def play_game(game_agent, iter):
             line = pygame.draw.line(window, color, start_pos, end_pos, 2)
             state_vectors.append(collision)
 
+
+        car_center = (car.x + car.image.get_width()/2,car.y + car.image.get_height()/2)
+        goal_center = (goal.x + goal.image.get_width()/2, goal.y + goal.image.get_height()/2)
+
+        line = pygame.draw.line(window, (255,255,255), car_center, goal_center, 2)
+
+        # radians = car.angle / 180 * math.pi # direction car is facing
+        # x_angle = math.cos(radians)
+        # y_angle = math.sin(radians)
+        #
+        # print("x_angle",x_angle)
+        # print("y_angle",y_angle)
+        #
+        # top_left = (car.x,car.y)
+        # top_right = (car.x + x_angle * 100, car.y + y_angle * 100)
+        # bottom_left = (car.x + y_angle * 50, car.y + x_angle * 50)
+        #
+        # radians = (car.angle + 26.565) / 180 * math.pi
+        # x_angle = math.cos(radians)
+        # y_angle = math.sin(radians)
+        # bottom_right = (car.x + x_angle * 111.803, car.y + y_angle * 111.803)
+        #
+        # line = pygame.draw.line(window, (255,255,255), (100,200), top_left, 2)
+        # line = pygame.draw.line(window, (0,0,255), (350,200), top_right, 2)
+        # line = pygame.draw.line(window, (0,255,0), (100,500), bottom_left, 2)
+        # line = pygame.draw.line(window, (255,0,0), (350,500), bottom_right, 2)
+
         pygame.display.update()
 
         # get game state
@@ -386,8 +419,7 @@ def play_game(game_agent, iter):
         print("keep running",run)
 
     game_agent.train_from_replayed_memory()
-    game_agent.model.save("model_2.h5")
-
+    game_agent.model.save("model_3.h5")
 
 
 def run(gamma=0.9, epsilon=0.2):
@@ -396,7 +428,7 @@ def run(gamma=0.9, epsilon=0.2):
     iter = 0
     while True:
         print("iter", iter)
-        play_game(game_agent, iter)
+        result = play_game(game_agent, iter)
         iter += 1
 
 if __name__ == '__main__':
