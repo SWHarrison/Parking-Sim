@@ -422,7 +422,7 @@ def play_game(game_agent, iter):
         print("keep running",run)
 
     game_agent.train_from_replayed_memory()
-    game_agent.model.save("model_3.h5")
+    game_agent.model.save("model_4.h5")
 
 
 def run(gamma=0.9, epsilon=0.2):

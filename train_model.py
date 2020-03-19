@@ -26,8 +26,8 @@ class GameAgent():
         self.reward = 0
         self.agent_target = 1
         self.agent_prediction = 0
-        #self.model = self.create_model()
-        self.model = load_model('model_3.h5')
+        self.model = self.create_model()
+        #self.model = load_model('model_3.h5')
         self.state = None
 
 
@@ -50,7 +50,7 @@ class GameAgent():
 
         rand_num = random.random()
         next_action = [0] * 6
-        if(iter < 0):
+        if(iter < 50):
             next_action[0] = 1
         elif rand_num < self.epsilon:
             next_action[random.randint(0,5)] = 1
