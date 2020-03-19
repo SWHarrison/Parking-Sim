@@ -50,8 +50,8 @@ class GameAgent():
 
         rand_num = random.random()
         next_action = [0] * 6
-        if(iter < 50):
-            next_action[0] = 1
+        if(iter < 1):
+            next_action[5] = 1
         elif rand_num < self.epsilon:
             next_action[random.randint(0,5)] = 1
         else:
