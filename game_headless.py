@@ -12,8 +12,8 @@ from random import sample
 import numpy as np
 import pandas as pd
 from operator import add
-
-from dot_product import rectangle_collison
+# custom dot product to detect if point is in rectangle and rectangle collision
+from dot_product import point_in_rectangle, rectangle_collison
 
 pygame.font.init()  # init font
 
@@ -58,7 +58,7 @@ class Car:
         top_left = (left_center[0] + math.cos(radians) * 50, left_center[1] - math.sin(radians) * 50)
         bottom_left = (left_center[0] - math.cos(radians) * 50, left_center[1] + math.sin(radians) * 50)
 
-        return [top_left,bottom_left,bottom_right,top_right]
+        return [top_left, bottom_left, bottom_right, top_right]
 
     def turn_left(self):
 
@@ -446,13 +446,23 @@ def play_game(game_agent, iter):
             y_angle = math.sin(radians)
             collision = line_length
             for j in range(0, line_length, 5):
+                # car points
                 point = (car.x - x_angle * j + car.image.get_width()/2,car.y + y_angle * j + car.image.get_height()/2)
                 for obstacle in obstacles:
-                    obstacle_rect = obstacle.image.get_rect(center = (obstacle.x + obstacle.image.get_width()/2, obstacle.y + obstacle.image.get_height()/2))
+                    # get the corners of obstacle
+                    obstacle_corners = obstacle.get_corners()
+                    # check if car point in the obstacle rect
+                    if point_in_rectangle(point, obstacle_corners):
+                        collision = j
+                        break
+                    '''
+                    # # old code before for collide point
+                    # obstacle_rect = obstacle.image.get_rect(center = (obstacle.x + obstacle.image.get_width()/2, obstacle.y + obstacle.image.get_height()/2))
                     if obstacle_rect.collidepoint(point):
                         print("point", point, "in rect", obstacle_rect)
                         collision = j
                         break
+                    '''
 
                 if collision != 150:
                     break

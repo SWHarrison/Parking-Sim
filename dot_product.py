@@ -1,4 +1,12 @@
 def point_in_rectangle(point, rectangle):
+    """
+        Determine if the given point is inside the rectangle
+        Args:
+            point(tuple): tuple of points x and y
+            rectangle
+        Returns:
+            bool: True if point in the rect, False otherwise
+    """
 
     left_sides = 0
     for i in range(0,4):
