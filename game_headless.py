@@ -536,7 +536,7 @@ def play_game(game_agent, iter):
 
         # set old_state to current new_state
         old_state = game_state
-        run = not (car_crash or car_parked)
+        run = not(car_crash or car_parked)
         print("keep running",run)
 
     game_agent.train_from_replayed_memory()

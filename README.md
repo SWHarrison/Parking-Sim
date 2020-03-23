@@ -2,41 +2,27 @@
 
 Self-Parking car simulation using Reinforcement Learning.
 
-## Description
+## Descriptionv
 
-Self-driving car tries to park using reinforcement learning - it is a giving reward when car gets closer to goal it is rewarded and far from the goal it loses the reward. That's how it learns to get closer to the goal and finally park itself. We used pygame to set up the game logic and environment. We used `Sequentional()` model to train. 
+Self-driving car tries to park using reinforcement learning - it is giving a reward when car gets closer to goal, if it gets far from the goal it loses the reward. That's how it learns to get closer to the goal and finally park itself. We used pygame to set up the game logic and environment. We used `Sequentional()` model to train. 
 
 
 ### Installing
 
-- Clone the repo 
+Clone the repo 
 ```
-git clone 
-```
-
-```
-Give the example
+git clone https://github.com/SWHarrison/Parking-Sim.git
 ```
 
-And repeat
+### Running
+```
+1. cd Parking-Sim
+2. python3 game_headless.py
 
 ```
-until finished
-```
+### Running Example
 
-End with an example of getting some data out of the system or using it for a little demo
-
-## Running the tests
-
-Explain how to run the automated tests for this system
-
-### Break down into end to end tests
-
-Explain what these tests test and why
-
-```
-Give an example
-```
+[insert] gif recorder here
 
 ### And coding style tests
 
@@ -46,15 +32,11 @@ Explain what these tests test and why
 Give an example
 ```
 
-## Deployment
-
-Add additional notes about how to deploy this on a live system
-
 ## Built With
 
-* [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
-* [Maven](https://maven.apache.org/) - Dependency Management
-* [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
+* [Pygame](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
+* [Keras](https://maven.apache.org/) - Dependency Management
+* [Python](https://rometools.github.io/rome/) - Used to generate RSS Feeds
 
 ## Versioning
 
@@ -73,7 +55,6 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 
 ## Acknowledgments
 
-* Hat tip to anyone whose code was used
 * Inspiration
 * Readme credit - [PurpleBooth](https://github.com/PurpleBooth)
 
