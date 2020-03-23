@@ -12,6 +12,8 @@ from random import sample
 import numpy as np
 import pandas as pd
 from operator import add
+# custom dot product to detect if point is in rectangle and rectangle collision
+from dot_product import point_in_rectangle, rectangle_collison
 
 pygame.font.init()  # init font
 
@@ -40,6 +42,23 @@ class Car:
         self.angle = angle
         self.image = pygame.transform.rotate(car_img, self.angle)
         self.time = 0
+
+    # return list of tuples of 4 points for corners of car
+    def get_corners(self):
+
+        radians = self.angle * math.pi / 180
+        car_center = (self.x + self.image.get_width()/2,self.y + self.image.get_height()/2)
+        # car_center = (car.x, car.y) # for use later when headless
+        left_center = (car_center[0] + (math.cos((radians + math.pi/2)) * 25), car_center[1] - (math.sin((radians + math.pi/2)) * 25))
+        right_center = (car_center[0] + math.cos(radians - math.pi/2) * 25, car_center[1] - math.sin(radians - math.pi/2) * 25)
+
+        top_right = (right_center[0] + math.cos(radians) * 50, right_center[1] - math.sin(radians) * 50)
+        bottom_right = (right_center[0] - math.cos(radians) * 50, right_center[1] + math.sin(radians) * 50)
+
+        top_left = (left_center[0] + math.cos(radians) * 50, left_center[1] - math.sin(radians) * 50)
+        bottom_left = (left_center[0] - math.cos(radians) * 50, left_center[1] + math.sin(radians) * 50)
+
+        return [top_left, bottom_left, bottom_right, top_right]
 
     def turn_left(self):
 
@@ -194,14 +213,84 @@ class Obstacle:
 
         return pygame.mask.from_surface(self.image)
 
+    def get_corners(self):
+
+        radians = self.angle * math.pi / 180
+        car_center = (self.x + self.image.get_width()/2,self.y + self.image.get_height()/2)
+        # car_center = (car.x, car.y) # for use later when headless
+        left_center = (car_center[0] + (math.cos((radians + math.pi/2)) * 25), car_center[1] - (math.sin((radians + math.pi/2)) * 25))
+        right_center = (car_center[0] + math.cos(radians - math.pi/2) * 25, car_center[1] - math.sin(radians - math.pi/2) * 25)
+
+        top_right = (right_center[0] + math.cos(radians) * 50, right_center[1] - math.sin(radians) * 50)
+        bottom_right = (right_center[0] - math.cos(radians) * 50, right_center[1] + math.sin(radians) * 50)
+
+        top_left = (left_center[0] + math.cos(radians) * 50, left_center[1] - math.sin(radians) * 50)
+        bottom_left = (left_center[0] - math.cos(radians) * 50, left_center[1] + math.sin(radians) * 50)
+
+        return [top_left,bottom_left,bottom_right,top_right]
+
     def collide(self, car):
 
-        car_mask = car.get_mask()
+        '''car_mask = car.get_mask()
         obstacle_mask = self.get_mask()
 
         offset = (int(self.x - car.x), int(self.y - car.y))
 
-        return car_mask.overlap(obstacle_mask, offset)
+        return car_mask.overlap(obstacle_mask, offset)'''
+
+        car_corners = car.get_corners()
+        obstacle_corners = self.get_corners()
+
+        print("car",car_corners)
+        print("obs",obstacle_corners)
+
+        return rectangle_collison(car_corners, obstacle_corners)
+
+        # D = (x2 - x1) * (yp - y1) - (xp - x1) * (y2 - y1)
+
+        '''car_corners = car.get_corners()
+        obstacle_corners = self.get_corners()
+
+        # get dot products of all obstacle's points with car edges
+        point_counters = 0
+        for point in obstacle_corners:
+
+            for i in range(0,4):
+
+                corner_1 = car_corners[i%4]
+                corner_2 = car_corners[(i+1)%4]
+
+                dot = (corner_2[0] - corner_1[0]) * (point[1] - corner_1[1]) - (point[0] - corner_1[0]) * (corner_2[1] - corner_1[1])
+
+                if dot <= 0:
+                    break
+                else:
+                    point_counters += 1
+
+        if point_counters == 4:
+            return True
+
+        # get dot products of all car's points with obstacle edges
+        point_counters = 0
+
+        for point in car_corners:
+
+            for i in range(0,4):
+
+                corner_1 = obstacle_corners[i%4]
+                corner_2 = obstacle_corners[(i+1)%4]
+
+                dot = (corner_2[0] - corner_1[0]) * (point[1] - corner_1[1]) - (point[0] - corner_1[0]) * (corner_2[1] - corner_1[1])
+
+                if dot <= 0:
+                    return False
+                else:
+                    point_counters += 1
+
+        if point_counters == 4:
+            return True
+        else:
+            return False'''
 
 
 class Goal:
@@ -286,7 +375,7 @@ def play_game(game_agent, iter):
     clock = pygame.time.Clock()
     reward = 0
 
-    car = Car(200, random.randint(200,1000), random.randint(0,90))
+    car = Car(200, random.randint(300,600), random.randint(0,90))
     goal = Goal(700, 350)
     obstacles = []
     obstacles.append(Obstacle(800,550,90))
@@ -332,27 +421,15 @@ def play_game(game_agent, iter):
                 car_crash = True
 
         # check for parking
-        collision = goal.collide(car)
+        car_parked = goal.collide(car)
         num_park = 0
-        if(collision):
-            print(collision)
-            print("car parked")
-            car_parked = True
-            num_park += 1
 
         if car_parked:
             print("num_park: ", num_park)
             from datetime import datetime
             parked_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-<<<<<<< HEAD
             with open('sorted_source_text_iter' + str(iter) + '.txt', 'w') as file:
                 file.write(parked_time)
-=======
-
-            with open('parked_time.txt', 'w') as file:
-                if parked_time not in "parked_time.txt":
-                    file.write(parked_time)
->>>>>>> cbb1200e0ceef2bfb6aa2984fb75d08495d6c196
 
         draw_window(window,car,obstacles, goal)
 
@@ -369,13 +446,23 @@ def play_game(game_agent, iter):
             y_angle = math.sin(radians)
             collision = line_length
             for j in range(0, line_length, 5):
+                # car points
                 point = (car.x - x_angle * j + car.image.get_width()/2,car.y + y_angle * j + car.image.get_height()/2)
                 for obstacle in obstacles:
-                    obstacle_rect = obstacle.image.get_rect(center = (obstacle.x + obstacle.image.get_width()/2, obstacle.y + obstacle.image.get_height()/2))
+                    # get the corners of obstacle
+                    obstacle_corners = obstacle.get_corners()
+                    # check if car point in the obstacle rect
+                    if point_in_rectangle(point, obstacle_corners):
+                        collision = j
+                        break
+                    '''
+                    # # old code before for collide point
+                    # obstacle_rect = obstacle.image.get_rect(center = (obstacle.x + obstacle.image.get_width()/2, obstacle.y + obstacle.image.get_height()/2))
                     if obstacle_rect.collidepoint(point):
                         print("point", point, "in rect", obstacle_rect)
                         collision = j
                         break
+                    '''
 
                 if collision != 150:
                     break
@@ -391,26 +478,50 @@ def play_game(game_agent, iter):
 
         line = pygame.draw.line(window, (255,255,255), car_center, goal_center, 2)
 
-        # radians = car.angle / 180 * math.pi # direction car is facing
-        # x_angle = math.cos(radians)
-        # y_angle = math.sin(radians)
-        #
+        radians = car.angle / 180 * math.pi # direction car is facing
+        x_angle = math.cos(radians)
+        y_angle = math.sin(radians)
+
         # print("x_angle",x_angle)
         # print("y_angle",y_angle)
         #
-        # top_left = (car.x,car.y)
-        # top_right = (car.x + x_angle * 100, car.y + y_angle * 100)
-        # bottom_left = (car.x + y_angle * 50, car.y + x_angle * 50)
+        radians = car.angle * math.pi / 180
+        # print("angle",car.angle)
+        # print("right side angle",car.angle + 90)
+        # print("left side angle",car.angle - 90)
+        # print("radians",radians)
         #
-        # radians = (car.angle + 26.565) / 180 * math.pi
+        # print("right side radian",radians + math.pi/2)
+        # print("left side radian",radians - math.pi/2)
+
+        left_center = (car_center[0] + (math.cos((radians + math.pi/2)) * 25), car_center[1] - (math.sin((radians + math.pi/2)) * 25))
+        right_center = (car_center[0] + math.cos(radians - math.pi/2) * 25, car_center[1] - math.sin(radians - math.pi/2) * 25)
+
+        top_right = (right_center[0] + math.cos(radians) * 50, right_center[1] - math.sin(radians) * 50)
+        bottom_right = (right_center[0] - math.cos(radians) * 50, right_center[1] + math.sin(radians) * 50)
+
+        top_left = (left_center[0] + math.cos(radians) * 50, left_center[1] - math.sin(radians) * 50)
+        bottom_left = (left_center[0] - math.cos(radians) * 50, left_center[1] + math.sin(radians) * 50)
+
         # x_angle = math.cos(radians)
         # y_angle = math.sin(radians)
         # bottom_right = (car.x + x_angle * 111.803, car.y + y_angle * 111.803)
-        #
-        # line = pygame.draw.line(window, (255,255,255), (100,200), top_left, 2)
-        # line = pygame.draw.line(window, (0,0,255), (350,200), top_right, 2)
-        # line = pygame.draw.line(window, (0,255,0), (100,500), bottom_left, 2)
-        # line = pygame.draw.line(window, (255,0,0), (350,500), bottom_right, 2)
+
+        line = pygame.draw.line(window, (0,0,255), car_center, left_center, 5)
+        line = pygame.draw.line(window, (255,0,0), car_center, right_center, 5)
+        line = pygame.draw.line(window, (255,0,0), right_center, bottom_right, 5)
+        line = pygame.draw.line(window, (255,0,0), right_center, top_right, 5)
+        line = pygame.draw.line(window, (0,0,255), left_center, bottom_left, 5)
+        line = pygame.draw.line(window, (0,0,255), left_center, top_left, 5)
+
+        draw_colors = [(0,255,255),(255,0,255),(255,255,255)]
+        i = 0
+        for obstacle in obstacles:
+
+            obstacle_rect = obstacle.get_corners()
+            line = pygame.draw.line(window, draw_colors[i], obstacle_rect[0], obstacle_rect[2], 5)
+            line = pygame.draw.line(window, draw_colors[i], obstacle_rect[1], obstacle_rect[3], 5)
+            i+= 1
 
         pygame.display.update()
 
@@ -425,11 +536,11 @@ def play_game(game_agent, iter):
 
         # set old_state to current new_state
         old_state = game_state
-        run = not (car_crash or car_parked)
+        run = not(car_crash or car_parked)
         print("keep running",run)
 
     game_agent.train_from_replayed_memory()
-    game_agent.model.save("model_3.h5")
+    game_agent.model.save("model_4.h5")
 
 
 def run(gamma=0.9, epsilon=0.2):

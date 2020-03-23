@@ -27,7 +27,7 @@ class GameAgent():
         self.agent_target = 1
         self.agent_prediction = 0
         self.model = self.create_model()
-        #self.model = load_model('model_3.h5')
+        #self.model = load_model('model_headless.h5')
         self.state = None
 
 
@@ -39,10 +39,14 @@ class GameAgent():
         STATE_VECTOR.append(car.steer)
 
         # keep these positions as last 4 in state vector for rewards
-        STATE_VECTOR.append(car.x + car.image.get_width()/2)
-        STATE_VECTOR.append(car.y + car.image.get_height()/2)
-        STATE_VECTOR.append(goal.x + goal.image.get_width()/2)
-        STATE_VECTOR.append(goal.y + goal.image.get_height()/2)
+        STATE_VECTOR.append(car.x)
+        STATE_VECTOR.append(car.y)
+        STATE_VECTOR.append(goal.x)
+        STATE_VECTOR.append(goal.y)
+        # STATE_VECTOR.append(car.x + car.image.get_width()/2)
+        # STATE_VECTOR.append(car.y + car.image.get_height()/2)
+        # STATE_VECTOR.append(goal.x + goal.image.get_width()/2)
+        # STATE_VECTOR.append(goal.y + goal.image.get_height()/2)
 
         return STATE_VECTOR
 

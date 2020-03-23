@@ -47,7 +47,7 @@ class Car:
     def get_corners(self):
 
         radians = self.angle * math.pi / 180
-        car_center = (self.x + self.image.get_width()/2,self.y + self.image.get_height()/2)
+        car_center = (self.x,self.y)
         # car_center = (car.x, car.y) # for use later when headless
         left_center = (car_center[0] + (math.cos((radians + math.pi/2)) * 25), car_center[1] - (math.sin((radians + math.pi/2)) * 25))
         right_center = (car_center[0] + math.cos(radians - math.pi/2) * 25, car_center[1] - math.sin(radians - math.pi/2) * 25)
@@ -216,7 +216,7 @@ class Obstacle:
     def get_corners(self):
 
         radians = self.angle * math.pi / 180
-        car_center = (self.x + self.image.get_width()/2,self.y + self.image.get_height()/2)
+        car_center = (self.x,self.y)
         # car_center = (car.x, car.y) # for use later when headless
         left_center = (car_center[0] + (math.cos((radians + math.pi/2)) * 25), car_center[1] - (math.sin((radians + math.pi/2)) * 25))
         right_center = (car_center[0] + math.cos(radians - math.pi/2) * 25, car_center[1] - math.sin(radians - math.pi/2) * 25)
@@ -312,8 +312,8 @@ class Goal:
 
     def collide(self, car):
 
-        car_center = (car.x + car.image.get_width()/2,car.y + car.image.get_height()/2)
-        goal_center = (self.x + self.image.get_width()/2, self.y + self.image.get_height()/2)
+        car_center = (car.x,car.y)
+        goal_center = (self.x, self.y)
 
         print(car_center,goal_center)
 
@@ -326,7 +326,7 @@ class Goal:
         return distance < 30 and x_distance < 20
 
 
-def blitRotateCenter(surf, image, topleft, angle):
+def blitRotateCenter(surf, image, center, angle):
     """
     Rotate a surface and blit it to the window
     :param surf: the surface to blit to
@@ -335,7 +335,9 @@ def blitRotateCenter(surf, image, topleft, angle):
     :param angle: a float value for angle
     :return: None
     """
-    new_rect = image.get_rect(center=image.get_rect(topleft=topleft).center)
+    print("new center",image.get_rect(center=center).center)
+
+    new_rect = image.get_rect(center = image.get_rect(center=center).center)
 
     surf.blit(image, new_rect.topleft)
 
@@ -350,14 +352,14 @@ def draw_window(window, car, obstacles, goal):
     olist = car.get_mask().outline()
     offset_list = []
     for value in olist:
-        offset_list.append((int(value[0] + car.x),int(value[1] + car.y)))
+        offset_list.append((int(value[0] + car.x - car.image.get_width()/2),int(value[1] + car.y - car.image.get_height()/2)))
     pygame.draw.lines(window, (0, 0, 255), 1, offset_list)
 
     for obstacle in obstacles:
         olist = obstacle.get_mask().outline()
         offset_list = []
         for value in olist:
-            offset_list.append((int(value[0] + obstacle.x), int(value[1] + obstacle.y)))
+            offset_list.append((int(value[0] + obstacle.x - obstacle.image.get_width()/2), int(value[1] + obstacle.y - obstacle.image.get_height()/2)))
         obstacle.draw(window)
         pygame.draw.lines(window, (0, 255, 0), 1, offset_list)
     # -- End of outline drawing
@@ -375,7 +377,7 @@ def play_game(game_agent, iter):
     clock = pygame.time.Clock()
     reward = 0
 
-    car = Car(200, random.randint(300,600), random.randint(0,90))
+    car = Car(200, random.randint(300,400), random.randint(0,0))
     goal = Goal(700, 350)
     obstacles = []
     obstacles.append(Obstacle(800,550,90))
@@ -385,7 +387,7 @@ def play_game(game_agent, iter):
 
     old_state = np.array(game_agent.get_game_states(car, goal, [150] * 12))
     #next_action = [1,0,0,0,0,0]
-    next_action = [1,0,0,0,0,0]
+    next_action = [0,0,0,0,0,1]
     run = True
     while run:
 
@@ -398,7 +400,8 @@ def play_game(game_agent, iter):
                 quit()
                 break
 
-
+        #car.angle += 1
+        car.speed = 15
         car.next_action(next_action)
         car.move()
         #print("car x",car.x)
@@ -435,7 +438,7 @@ def play_game(game_agent, iter):
 
         # draw sensor lines
         angle_adjustments = [0,20,-20,90,-90,180,160,200,60,-60,120,240]
-        start_pos = (car.x + car.image.get_width()/2, car.y + car.image.get_height()/2)
+        start_pos = (car.x, car.y)
         line_length = 150
         car_lines = []
         state_vectors = []
@@ -447,7 +450,7 @@ def play_game(game_agent, iter):
             collision = line_length
             for j in range(0, line_length, 5):
                 # car points
-                point = (car.x - x_angle * j + car.image.get_width()/2,car.y + y_angle * j + car.image.get_height()/2)
+                point = (car.x - x_angle * j,car.y + y_angle * j)
                 for obstacle in obstacles:
                     # get the corners of obstacle
                     obstacle_corners = obstacle.get_corners()
@@ -467,14 +470,14 @@ def play_game(game_agent, iter):
                 if collision != 150:
                     break
 
-            end_pos = (car.x - x_angle * line_length + car.image.get_width()/2, car.y + y_angle * line_length + car.image.get_height()/2)
+            end_pos = (car.x - x_angle * line_length, car.y + y_angle * line_length)
             color = (0, 255, 255) if collision == 150 else (255, 0, 0)
             line = pygame.draw.line(window, color, start_pos, end_pos, 2)
             state_vectors.append(collision)
 
 
-        car_center = (car.x + car.image.get_width()/2,car.y + car.image.get_height()/2)
-        goal_center = (goal.x + goal.image.get_width()/2, goal.y + goal.image.get_height()/2)
+        car_center = (car.x,car.y)
+        goal_center = (goal.x, goal.y)
 
         line = pygame.draw.line(window, (255,255,255), car_center, goal_center, 2)
 
