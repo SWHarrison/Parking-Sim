@@ -103,13 +103,13 @@ class GameAgent():
         """
         # input shape
         model = Sequential()
-        model.add(Dense(120, activation="relu", input_shape=(19,)))
+        model.add(Dense(64, activation="relu", input_shape=(19,)))
         model.add(Dropout(0.25))
-        model.add(Dense(120, activation="relu"))
+        model.add(Dense(64, activation="relu"))
         model.add(Dropout(0.25))
-        model.add(Dense(120, activation="relu"))
+        model.add(Dense(64, activation="relu"))
         model.add(Dropout(0.25))
-        model.add(Dense(120, activation="relu"))
+        model.add(Dense(64, activation="relu"))
         model.add(Dropout(0.25))
         model.add(Dense(6, activation="softmax"))
         optimizer = Adam(self.learning_rate)
@@ -235,13 +235,12 @@ class GameAgent():
 
         return self.reward
 
-
     def save_state_to_memory(self, current_state, current_action, current_reward, next_state, stop):
-        """ Method to save current detailed state to object's memory. """
+        """Method to save current detailed state to object's memory."""
         self.memory.append((current_state, current_action, current_reward, next_state, stop))
 
     def short_term_memory_trainer(self, current_state, current_action, current_reward, next_state, stop):
-        """ Method to train short-term memory bank using detailed saved state info. """
+        """Method to train short-term memory bank using detailed saved state info."""
         target_ = current_reward
         if not stop:
             target_ = current_reward + (self.gamma * np.amax(self.model.predict(next_state.reshape((1, 19)))[0]))
@@ -250,7 +249,7 @@ class GameAgent():
         self.model.fit(current_state.reshape((1, 19)),target_final, epochs=1, verbose=0)
 
     def train_from_replayed_memory(self):
-        """ Method to retrieve state details from object's memory bank. """
+        """Method to retrieve state details from object's memory bank."""
 
         memory_bank = self.memory
         if len(memory_bank) > 1000:
