@@ -68,6 +68,19 @@ class GameAgent():
 
     def create_model(self):
         """ Method to create neural network architecture using optimized Keras models. """
+        
+        shallow_model = self.shallow_fat_model()
+
+        deep_model = self.deep_model()
+
+        return shallow_model
+
+    def shallow_fat_model(self):
+        """
+            NOTE: old model
+            Shallow model with less number of layers
+        """
+
         # input shape
         model = Sequential()
         model.add(Dense(120, activation="relu", input_shape=(19,)))
@@ -81,13 +94,29 @@ class GameAgent():
         model.compile(loss="mse", optimizer=optimizer)
 
         return model
-
-    def shallow_fat_model(self):
-
-        pass
+        
 
     def deep_model(self):
-        pass
+        """
+            Deep layer of neural networks
+            Note: Discuss this with Sam
+        """
+        # input shape
+        model = Sequential()
+        model.add(Dense(120, activation="relu", input_shape=(19,)))
+        model.add(Dropout(0.25))
+        model.add(Dense(120, activation="relu"))
+        model.add(Dropout(0.25))
+        model.add(Dense(120, activation="relu"))
+        model.add(Dropout(0.25))
+        model.add(Dense(120, activation="relu"))
+        model.add(Dropout(0.25))
+        model.add(Dense(6, activation="softmax"))
+        optimizer = Adam(self.learning_rate)
+        model.compile(loss="mse", optimizer=optimizer)
+
+        return model
+        
 
     def get_game_reward(self, collision, parked, old_state, new_state):
         """Method to determine effective weights to reward or punish player activity."""
