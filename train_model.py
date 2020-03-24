@@ -15,7 +15,7 @@ class GameAgent():
 
     def __init__(self, gamma, epsilon):
         """
-        Setting up the RL model instances
+        Setting up the Reinforcement Learning model instances
         """
         # memory for the actions taken
         self.memory = list()
@@ -27,9 +27,8 @@ class GameAgent():
         self.agent_target = 1
         self.agent_prediction = 0
         self.model = self.create_model()
-        #self.model = load_model('model_headless.h5')
+        # self.model = load_model('model_headless.h5')
         self.state = None
-
 
     def get_game_states(self, car, goal, sensors):
 
@@ -64,9 +63,8 @@ class GameAgent():
             #print("input shape:", model_input.shape)
             next_action = self.model.predict(model_input)[0]
 
-        #print("next_action",next_action)
+        # print("next_action",next_action)
         return next_action
-
 
     def create_model(self):
         """ Method to create neural network architecture using optimized Keras models. """
@@ -84,8 +82,30 @@ class GameAgent():
 
         return model
 
+    def shallow_fat_model(self):
+
+        pass
+
+    def deep_model(self):
+        pass
+
     def get_game_reward(self, collision, parked, old_state, new_state):
         """Method to determine effective weights to reward or punish player activity."""
+        
+        # old reward system
+        simple_reward = self.reward_simple(collision, parked, old_state, new_state)
+        
+        # new reward, with checking if car goes out of bound, also with different
+        # numbers for parking and colliding
+        new_reward = self.reward_v2(collision, parked, old_state, new_state)
+        
+        return simple_reward
+
+    def reward_simple(self, collision, parked, old_state, new_state):
+        """
+            NOTE: Old reward function
+            Simple reward function. 
+        """
         self.reward = 0
 
         old_car_x = old_state[-4]
@@ -98,8 +118,10 @@ class GameAgent():
         new_goal_x = new_state[-2]
         new_goal_y = new_state[-1]
 
-        old_distance = math.sqrt((old_car_x - old_goal_x)**2 + (old_car_y - old_goal_y)**2)
-        new_distance = math.sqrt((new_car_x - new_goal_x)**2 + (new_car_y - new_goal_y)**2)
+        old_distance = math.sqrt(
+            (old_car_x - old_goal_x)**2 + (old_car_y - old_goal_y)**2)
+        new_distance = math.sqrt(
+            (new_car_x - new_goal_x)**2 + (new_car_y - new_goal_y)**2)
 
         # reward if closer to goal than before
         if(old_distance > new_distance):
@@ -124,6 +146,66 @@ class GameAgent():
             self.epsilon -= 0.001
 
         return self.reward
+
+    def reward_v2(self, collision, parked, old_state, new_state):
+        """
+            Reward the model as it gets closer to goal and penalties,
+            when crashes, everything pretty much the same as function
+            `reward_simple()` but added check if car goes out of bound.
+            NOTE: Do we need to make a change to the number of arguments to the
+            reward function to take the car out of bound, because it is different
+            than colliding with obstacle.
+        """
+        self.reward = 0
+
+        # old car state postions
+        old_car_x = old_state[-4]
+        old_car_y = old_state[-3]
+        # old goal state postions
+        old_goal_x = old_state[-2]
+        old_goal_y = old_state[-1]
+
+        # new car state postions
+        new_car_x = new_state[-4]
+        new_car_y = new_state[-3]
+        # new goal state postions
+        new_goal_x = new_state[-2]
+        new_goal_y = new_state[-1]
+
+        # calculating the distance
+        old_distance = math.sqrt((old_car_x - old_goal_x)**2 + (old_car_y - old_goal_y)**2)
+        new_distance = math.sqrt((new_car_x - new_goal_x)**2 + (new_car_y - new_goal_y)**2)
+
+        # reward if closer to goal than before
+        if(old_distance > new_distance):
+            self.reward += 10
+            if new_distance < 100:
+                self.reward *= 50
+            elif new_distance < 200:
+                self.reward *= 20
+            elif new_distance < 400:
+                self.reward *= 8
+            elif new_distance < 800:
+                self.reward *= 2
+        else:
+            self.reward -= 10
+
+        # penalty if crashing
+        if collision:
+            self.reward -= 40
+        # reward if parking
+        elif parked:
+            self.reward += 100
+            self.epsilon -= 0.001
+
+        # if car goes out of bound
+        # 1200 is the width and height of the game window
+        if new_car_x < 0 or new_car_x > 1200 or new_car_y < 0 or new_car_y > 1200:
+            # going out of bounds is much worse than colliding
+            self.reward -= 300
+
+        return self.reward
+
 
     def save_state_to_memory(self, current_state, current_action, current_reward, next_state, stop):
         """ Method to save current detailed state to object's memory. """

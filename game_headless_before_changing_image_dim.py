@@ -198,7 +198,7 @@ class Car:
 
 class Obstacle:
 
-    def __init__(self, x, y, angle = 0):
+    def __init__(self, x, y, angle=0):
 
         self.x = x
         self.y = y
@@ -385,7 +385,7 @@ def play_game(game_agent, iter):
 
     old_state = np.array(game_agent.get_game_states(car, goal, [150] * 12))
     #next_action = [1,0,0,0,0,0]
-    next_action = [1,0,0,0,0,0]
+    next_action = [1, 0, 0, 0, 0, 0]
     run = True
     while run:
 
@@ -409,6 +409,9 @@ def play_game(game_agent, iter):
         car_parked = False
 
         # check if car is out of bounds
+        # NOTE: Do we need to make a change to the number of arguments to the
+        # reward function to take the car out of bound, because it is different
+        # than colliding with obstacle.
         if car.x < 0 or car.x > 1200 or car.y < 0 or car.y > 1200:
             car_crash = True
 
@@ -428,7 +431,7 @@ def play_game(game_agent, iter):
             print("num_park: ", num_park)
             from datetime import datetime
             parked_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            with open('sorted_source_text_iter' + str(iter) + '.txt', 'w') as file:
+            with open('parked_iter_' + str(iter) + '.txt', 'w') as file:
                 file.write(parked_time)
 
         draw_window(window,car,obstacles, goal)
